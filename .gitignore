@@ -1,0 +1,7 @@
+/out/
+/bin/
+/.idea/
+/.vscode/
+/*.zip
+/output/*
+!.gitkeep
