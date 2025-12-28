@@ -51,22 +51,35 @@ public class ReferralPanel extends JPanel {
 
         search.getDocument().addDocumentListener((SimpleDocumentListener) e -> {
             String q = search.getText().trim();
-            if (q.isEmpty()) sorter.setRowFilter(null);
-            else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(q)));
+            if (q.isEmpty())
+                sorter.setRowFilter(null);
+            else
+                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(q)));
         });
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JButton editBtn = new JButton("Edit");
         JButton delBtn = new JButton("Delete");
         JButton outputBtn = new JButton("Generate Referral Letter");
         JButton refreshBtn = new JButton("Refresh");
+        actions.add(editBtn);
         actions.add(delBtn);
         actions.add(outputBtn);
         actions.add(refreshBtn);
 
         addBtn.addActionListener(e -> onAdd());
+        editBtn.addActionListener(e -> onEdit());
         delBtn.addActionListener(e -> onDelete());
         outputBtn.addActionListener(e -> onGenerateOutput());
         refreshBtn.addActionListener(e -> refresh());
+
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2)
+                    onEdit();
+            }
+        });
 
         add(header, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
@@ -84,13 +97,46 @@ public class ReferralPanel extends JPanel {
         if (created != null) {
             controller.add(created);
             refresh();
-            status.accept("Added referral " + created.getReferralId() + " (queue size: " + controller.queueSize() + ")");
+            status.accept(
+                    "Added referral " + created.getReferralId() + " (queue size: " + controller.queueSize() + ")");
+        }
+    }
+
+    private void onEdit() {
+        int row = ViewUtil.selectedModelRow(table);
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Select a referral first.");
+            return;
+        }
+
+        Referral existing = controller.getAll().get(row);
+
+        // IMPORTANT: ReferralDialog constructor uses the ID passed in (newId
+        // parameter),
+        // so for editing we pass the EXISTING referral ID to preserve it.
+        ReferralDialog dlg = new ReferralDialog(
+                (java.awt.Frame) SwingUtilities.getWindowAncestor(this),
+                "Edit referral",
+                existing,
+                existing.getReferralId());
+
+        dlg.setVisible(true);
+
+        Referral updated = dlg.getResult();
+        if (updated != null) {
+            controller.getAll().set(row, updated);
+            refresh();
+            status.accept(
+                    "Updated referral " + updated.getReferralId() + " (queue size: " + controller.queueSize() + ")");
         }
     }
 
     private void onDelete() {
         int row = ViewUtil.selectedModelRow(table);
-        if (row < 0) { JOptionPane.showMessageDialog(this, "Select a referral to delete."); return; }
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Select a referral to delete.");
+            return;
+        }
         Referral r = controller.getAll().get(row);
         int ok = JOptionPane.showConfirmDialog(this, "Delete referral " + r.getReferralId() + "?", "Confirm",
                 JOptionPane.YES_NO_OPTION);
@@ -103,12 +149,16 @@ public class ReferralPanel extends JPanel {
 
     private void onGenerateOutput() {
         int row = ViewUtil.selectedModelRow(table);
-        if (row < 0) { JOptionPane.showMessageDialog(this, "Select a referral first."); return; }
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Select a referral first.");
+            return;
+        }
         Referral r = controller.getAll().get(row);
         try {
             File f = controller.generateOutput(r);
             JOptionPane.showMessageDialog(this, "Saved referral letter:\n" + f.getPath());
-            status.accept("Generated referral file for " + r.getReferralId() + " (queue size: " + controller.queueSize() + ")");
+            status.accept("Generated referral file for " + r.getReferralId() + " (queue size: " + controller.queueSize()
+                    + ")");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Could not generate referral letter: " + ex.getMessage());
         }
@@ -121,13 +171,27 @@ public class ReferralPanel extends JPanel {
 
     static class ReferralTableModel extends AbstractTableModel {
         private final ReferralController controller;
-        private final String[] cols = {"ID", "Patient", "From Clinician", "To Clinician", "Urgency", "Status", "Date"};
+        private final String[] cols = { "ID", "Patient", "From Clinician", "To Clinician", "Urgency", "Status",
+                "Date" };
 
-        ReferralTableModel(ReferralController controller) { this.controller = controller; }
+        ReferralTableModel(ReferralController controller) {
+            this.controller = controller;
+        }
 
-        @Override public int getRowCount() { return controller.getAll().size(); }
-        @Override public int getColumnCount() { return cols.length; }
-        @Override public String getColumnName(int c) { return cols[c]; }
+        @Override
+        public int getRowCount() {
+            return controller.getAll().size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return cols.length;
+        }
+
+        @Override
+        public String getColumnName(int c) {
+            return cols[c];
+        }
 
         @Override
         public Object getValueAt(int row, int col) {
@@ -145,9 +209,9 @@ public class ReferralPanel extends JPanel {
         }
     }
 
-// Called by MainFrame after reload to repaint tables
-public void refreshFromOutside() {
-    model.fireTableDataChanged();
-}
+    // Called by MainFrame after reload to repaint tables
+    public void refreshFromOutside() {
+        model.fireTableDataChanged();
+    }
 
 }

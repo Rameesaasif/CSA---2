@@ -26,11 +26,13 @@ public class MainFrame extends JFrame {
     private PatientPanel patientPanel;
     private ClinicianPanel clinicianPanel;
     private AppointmentPanel appointmentPanel;
+    private FacilityPanel facilityPanel;
+    private StaffPanel staffPanel;
     private PrescriptionPanel prescriptionPanel;
     private ReferralPanel referralPanel;
 
     public MainFrame(DataStore store) {
-        super("Healthcare Management System (Java Swing + MVC) - CSA - 2");
+        super("Healthcare Management System - CSA 2");
         this.store = store;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -43,12 +45,16 @@ public class MainFrame extends JFrame {
         PatientController patientController = new PatientController(store);
         ClinicianController clinicianController = new ClinicianController(store);
         AppointmentController appointmentController = new AppointmentController(store);
+        FacilityController facilityController = new FacilityController(store);
+        StaffController staffController = new StaffController(store);
         PrescriptionController prescriptionController = new PrescriptionController(store);
         ReferralController referralController = new ReferralController(store);
 
         patientPanel = new PatientPanel(patientController, store, this::setStatus);
         clinicianPanel = new ClinicianPanel(clinicianController, this::setStatus);
         appointmentPanel = new AppointmentPanel(appointmentController, store, this::setStatus);
+        facilityPanel = new FacilityPanel(facilityController, store, this::setStatus);
+        staffPanel = new StaffPanel(staffController, store, this::setStatus);
         prescriptionPanel = new PrescriptionPanel(prescriptionController, store, this::setStatus);
         referralPanel = new ReferralPanel(referralController, store, this::setStatus);
 
@@ -56,6 +62,8 @@ public class MainFrame extends JFrame {
         tabs.addTab("Patients", patientPanel);
         tabs.addTab("Clinicians", clinicianPanel);
         tabs.addTab("Appointments", appointmentPanel);
+        tabs.addTab("Facilities", facilityPanel);
+        tabs.addTab("Staff", staffPanel);
         tabs.addTab("Prescriptions", prescriptionPanel);
         tabs.addTab("Referrals", referralPanel);
 

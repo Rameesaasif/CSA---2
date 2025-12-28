@@ -60,10 +60,22 @@ public class DataStore {
         List<String> ids = patients.stream().map(Patient::getPatientId).toList();
         return nextId("PAT", ids);
     }
+
+    public String nextFacilityId() {
+    List<String> ids = facilities.stream().map(Facility::getFacilityId).toList();
+    return nextId("FAC", ids);
+    }
+
+    public String nextStaffId() {
+    List<String> ids = staff.stream().map(Staff::getStaffId).toList();
+    return nextId("STF", ids);
+    }
+
     public String nextPrescriptionId() {
         List<String> ids = prescriptions.stream().map(Prescription::getPrescriptionId).toList();
         return nextId("PRX", ids);
     }
+    
     public String nextAppointmentId() {
         List<String> ids = appointments.stream().map(Appointment::getAppointmentId).toList();
         return nextId("APT", ids);
